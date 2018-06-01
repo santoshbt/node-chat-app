@@ -15,6 +15,7 @@ class Users {
   }
 
   addUser(id, name, room){
+    var room = room.toLowerCase();
     var user  =  {id, name, room};
     this.users.push(user);
     return user;
@@ -36,7 +37,11 @@ class Users {
   }
 
   getUserList(room) {
-    var users = this.users.filter((user) => user.room === room);
+    var room = room.toLowerCase();
+    var users = this.users.filter((user) => {
+      let userRoom = user.room.toLowerCase();
+      return userRoom === room;
+    });
     var namesArray = users.map((user) => user.name);
 
     return namesArray;
