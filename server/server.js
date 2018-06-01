@@ -4,7 +4,8 @@ const express = require('express');
 const socketIO = require('socket.io');
 
 const {generateMessage, generateLocationMessage} = require('./utils/message');
-const {isRealString} = require('./utils/validation');
+const {isRealString, findUsersExists} = require('./utils/validation');
+const {capitalize} = require('./utils/capitalize');
 const {Users} = require('./utils/users');
 
 const publicPath = path.join(__dirname, '../public');
@@ -24,11 +25,24 @@ io.on('connection', (socket) => {
     if (!isRealString(params.name) || !isRealString(roomName)) {
       return callback('Name and Room name are required');
     }
+
+    var currentUsers = users.getUserList(roomName);
+    var found = currentUsers.find(function(currentUser) {
+      return currentUser === params.name;
+    });
+
+    // var found = findUsersExists(roomName, params.name);
+    // console.log('found==' + found);
+    
+    if(found){
+      return callback('User with this name already exists');
+    }
+
     socket.join(roomName);
     users.removeUser(socket.id);
     users.addUser(socket.id, params.name, roomName);
     io.to(roomName).emit('updateUserList', users.getUserList(roomName));
-    socket.emit('newMessage', generateMessage('Admin', 'Welcome to the chat app'));
+    socket.emit('newMessage', generateMessage('Admin', `Hello ${capitalize(params.name)} Welcome to the chat app`));
     socket.broadcast.to(roomName).emit('newMessage', generateMessage('Admin', `${params.name} has joined`));
 
     callback();
